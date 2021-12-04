@@ -4,24 +4,26 @@ use std::io::{BufRead, BufReader};
 #[derive(Debug)]
 struct Submarine {
     depth: i32,
-    horiz: i32
+    horiz: i32,
+    aim: i32
 }
 
 impl Submarine {
     pub fn new() -> Self {
-        Submarine { depth: 0, horiz: 0 }
+        Submarine { depth: 0, horiz: 0, aim: 0 }
     }
 
     pub fn forward(&mut self, units: i32) {
         self.horiz += units;
+        self.depth += self.aim * units;
     }
 
     pub fn down(&mut self, units: i32) {
-        self.depth += units;
+        self.aim += units;
     }
 
     pub fn up(&mut self, units: i32) {
-        self.depth -= units;
+        self.aim -= units;
     }
 
     pub fn run_command(&mut self, cmd: &str) {
