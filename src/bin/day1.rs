@@ -15,8 +15,7 @@ fn read_measurements(path: &str) -> Vec<i32> {
     return result;
 }
 
-fn main() {
-    let measurements = read_measurements("data/day1-input");
+fn count_increased(measurements: &Vec<i32>) -> i32 {
     let mut increased_count = 0;
     for ind in 1..measurements.len() {
         let diff = measurements[ind] - measurements[ind-1];
@@ -25,4 +24,25 @@ fn main() {
         }
     }
     println!("Number increased: {}", increased_count);
+    increased_count
+}
+
+fn count_window_increased(measurements: &Vec<i32>) -> usize {
+    let windowed: Vec<i32> = (2..measurements.len()).map(|idx| measurements[idx-2..idx+1].iter().sum()).collect();
+    println!("windowed: {:?}", windowed);
+    let increased = (1..windowed.len()).filter(|idx| windowed[*idx] > windowed[*idx-1]).count();
+    println!("Number increased: {:?}", increased);
+    increased
+}
+
+
+fn main() {
+    let measurements = read_measurements("data/day1-input");
+    let test_measurements = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
+    println!("Test measurements");
+    count_increased(&test_measurements);
+    count_window_increased(&test_measurements);
+    println!("Real measurements");
+    count_increased(&measurements);
+    count_window_increased(&measurements);
 }
