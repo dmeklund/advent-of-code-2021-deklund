@@ -53,5 +53,5 @@ fn main() {
     println!("sub test: {:?}", mysub);
     mysub = Submarine::new();
     mysub.run_from_file("data/day2-input");
-    println!("sub result: {:?} ({})", mysub, mysub.horiz() * mysub.depth());
+    println!("subs result: {:?} ({})", mysub, mysub.horiz() * mysub.depth());
 }
