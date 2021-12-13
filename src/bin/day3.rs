@@ -1,11 +1,18 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-fn read_input(path: &str) -> u32 {
+fn read_diagnostics(path: &str) -> Vec<String> {
+    let mut diagnostics = Vec::new();
+    for line in BufReader::new(File::open(path).unwrap()).lines() {
+        diagnostics.push(line.unwrap());
+    }
+    diagnostics
+}
+
+fn compute_counts(diagnostics: &Vec<String>) -> (Vec<u32>, Vec<u32>) {
     let mut zerocount = Vec::new();
     let mut onecount = Vec::new();
-    for line in BufReader::new(File::open(path).unwrap()).lines() {
-        let number = line.unwrap();
+    for number in diagnostics {
         for (ind, byte) in number.chars().enumerate() {
             if ind >= zerocount.len() {
                 zerocount.push(0);
@@ -18,6 +25,10 @@ fn read_input(path: &str) -> u32 {
             }
         }
     }
+    (zerocount, onecount)
+}
+
+fn compute_power(zerocount: &Vec<u32>, onecount: &Vec<u32>) -> u32 {
     let mut gammastr = String::new();
     let mut epsilonstr = String::new();
     for (ind, (zeros, ones)) in zerocount.iter().zip(onecount.iter()).enumerate() {
@@ -39,7 +50,56 @@ fn read_input(path: &str) -> u32 {
     gamma * epsilon
 }
 
+fn compute_oxygen(diagnostics: &Vec<String>) -> u32 {
+    let mut filtered = diagnostics.clone();
+    for ind in 0..diagnostics[0].len() {
+        let (zeros, ones) = compute_counts(&filtered);
+        if zeros[ind] > ones[ind] {
+            filtered = filtered.into_iter().filter(|val| { val.as_bytes()[ind] == b'0' }).collect();
+        } else {
+            println!("Grabbing ones for index {}", ind);
+            filtered = filtered.into_iter().filter(|val| { val.as_bytes()[ind] == b'1' }).collect();
+        }
+        println!("(Oxygen) filtered to {} values", filtered.len());
+        if filtered.len() == 1 {
+            println!("Final oxygen value: {}", filtered[0]);
+            break;
+        }
+    }
+    if filtered.len() != 1 {
+        panic!("Couldn't compute oxygen!");
+    }
+    u32::from_str_radix(filtered[0].as_str(), 2).unwrap()
+}
+
+fn compute_co2(diagnostics: &Vec<String>) -> u32 {
+    let mut filtered = diagnostics.clone();
+    for ind in 0..diagnostics[0].len() {
+        let (zeros, ones) = compute_counts(&filtered);
+        if zeros[ind] > ones[ind] {
+            filtered = filtered.into_iter().filter(|val| { val.as_bytes()[ind] == b'1' }).collect();
+        } else {
+            println!("Grabbing ones for index {}", ind);
+            filtered = filtered.into_iter().filter(|val| { val.as_bytes()[ind] == b'0' }).collect();
+        }
+        println!("(Oxygen) filtered to {} values", filtered.len());
+        if filtered.len() == 1 {
+            println!("Final oxygen value: {}", filtered[0]);
+            break;
+        }
+    }
+    if filtered.len() != 1 {
+        panic!("Couldn't compute oxygen!");
+    }
+    u32::from_str_radix(filtered[0].as_str(), 2).unwrap()
+}
+
 fn main() {
-    let result = read_input("data/day3-input");
-    println!("Result: {}", result);
+    let diagnostics = read_diagnostics("data/day3-input");
+    let (zerocount, onecount) = compute_counts(&diagnostics);
+    let power = compute_power(&zerocount, &onecount);
+    println!("Power: {}", power);
+    let oxygen = compute_oxygen(&diagnostics);
+    let co2 = compute_co2(&diagnostics);
+    println!("Oxygen: {}, CO2: {}, Life support: {}", oxygen, co2, oxygen*co2);
 }
