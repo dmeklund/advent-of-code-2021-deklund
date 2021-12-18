@@ -31,8 +31,19 @@ impl FloorMap {
                     vents[(xval, yval)] += 1;
                 }
             } else {
-                // panic!("Only horiz & vert lines supported! {:?}, {:?} ({})", coordstart, coordend, lineval);
-                println!("Skipping non-horz/vert line: {}", lineval);
+                let x1 = coordstart.0 as i32;
+                let x2 = coordend.0 as i32;
+                let y1 = coordstart.1 as i32;
+                let y2 = coordend.1 as i32;
+                if (x1 - x2).abs() != (y1 - y2).abs() {
+                    panic!("Line is not horiz, vert, or diagonal: {} ({}, {}, {}, {})", lineval, x1, x2, y1, y2);
+                }
+                let dx = (x2 - x1).signum();
+                let dy = (y2 - y1).signum();
+                for delta in 0..(x1 - x2).abs() + 1 {
+                    println!("Marking ({}, {}) for {}", x1+dx*delta, y1+dy*delta, lineval);
+                    vents[((x1+delta*dx) as usize, (y1+delta*dy) as usize)] += 1;
+                }
             }
         }
         FloorMap { vents }
