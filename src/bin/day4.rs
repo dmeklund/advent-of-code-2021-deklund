@@ -10,6 +10,7 @@ struct Bingo  {
 struct BingoResults<'t> {
     bingo: &'t Bingo,
     results: Vec<Array2<i32>>,
+    completed: Vec<bool>,
 }
 
 impl<'t> BingoResults<'t> {
@@ -18,7 +19,8 @@ impl<'t> BingoResults<'t> {
         for ind in 0..bingo.boards.len() {
             results.push(Array2::<i32>::zeros((5, 5)));
         }
-        let output = BingoResults { bingo, results };
+        let completed = vec![false; bingo.boards.len()];
+        let output = BingoResults { bingo, results, completed };
         output
     }
 
@@ -45,18 +47,42 @@ impl<'t> BingoResults<'t> {
         sum
     }
 
-    fn check_boards(&self) -> i32 {
+    fn check_boards(&mut self, find_last: bool) -> i32 {
+        let mut is_final_board = false;
+        let mut last_board_ind = 0;
+        if find_last {
+            let mut count = 0;
+            for (boardind, is_complete) in self.completed.iter().enumerate() {
+                if !is_complete {
+                    count += 1;
+                    last_board_ind = boardind;
+                }
+                if count > 1 {
+                    break;
+                }
+            }
+            if count == 1 {
+                println!("We're on the final board ({}) - if it bingos we'll return", last_board_ind);
+                is_final_board = true;
+            }
+        }
         for (boardind, board) in self.results.iter().enumerate() {
             for row in board.rows() {
                 if row.iter().all(|val| *val == 1) {
                     println!("Bingo! on board {}", boardind);
-                    return self.sum_unmarked(boardind);
+                    self.completed[boardind] = true;
+                    if !find_last || (is_final_board && boardind == last_board_ind) {
+                        return self.sum_unmarked(boardind);
+                    }
                 }
             }
             for col in board.columns() {
                 if col.iter().all(|val| *val == 1) {
+                    self.completed[boardind] = true;
                     println!("Bingo! on board {}", boardind);
-                    return self.sum_unmarked(boardind);
+                    if !find_last || (is_final_board && boardind == last_board_ind)  {
+                        return self.sum_unmarked(boardind);
+                    }
                 }
             }
         }
@@ -90,13 +116,13 @@ fn read_bingo(path: &str) -> Bingo {
     Bingo { numbers, boards }
 }
 
-fn play_boards(bingo: &Bingo) -> i32 {
+fn play_boards(bingo: &Bingo, find_last: bool) -> i32 {
     let mut results = BingoResults::new(&bingo);
     for number in &bingo.numbers {
         println!("playing {}", number);
         results.play_number(number);
         println!("Board 1 results: {:?}", results.results[0]);
-        let sum_unmarked = results.check_boards();
+        let sum_unmarked = results.check_boards(find_last);
         if sum_unmarked != -1 {
             println!("Sum of unmarked: {}, last number: {}", sum_unmarked, number);
             return sum_unmarked * number;
@@ -108,6 +134,8 @@ fn play_boards(bingo: &Bingo) -> i32 {
 
 fn main() {
     let bingo = read_bingo("data/day4-input");
-    let final_score = play_boards(&bingo);
+    let find_last = true;
+    let final_score = play_boards(&bingo, find_last);
     println!("Final score! {}", final_score);
 }
+
