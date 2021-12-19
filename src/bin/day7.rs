@@ -22,7 +22,11 @@ impl CrabPositions {
     }
 
     fn alignment_fuel(&self, position: i32) -> i32 {
-        (&self.positions - position).mapv(i32::abs).iter().sum()
+        (&self.positions - position)
+            .mapv(i32::abs)
+            .mapv(|val| val*(val+1)/2)
+            .iter()
+            .sum()
     }
 
     fn minimum_alignment_fuel(&self) -> (i32, i32) {
