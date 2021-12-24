@@ -8,7 +8,7 @@ enum Chunk {
     Close(ChunkType),
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 enum ChunkType {
     Square,
     Curly,
@@ -53,17 +53,23 @@ impl NavigationSubsystem {
         NavigationSubsystem { lines }
     }
 
-    fn calculate_score(&self) -> i32 {
-        let mut score = 0;
+    fn calculate_score(&self) -> i64 {
+        // let mut score = 0;
+        let mut scores = Vec::new();
         for line in &self.lines {
-            score += NavigationSubsystem::line_score(&line);
+            let score = NavigationSubsystem::line_score(&line);
+            if score != 0 {
+                scores.push(score);
+            }
         }
-        score
+        scores.sort();
+        println!("All scores: {:?}", scores);
+        scores[(scores.len()-1)/2]
     }
 
-    fn line_score(line: &str) -> i32 {
+    fn line_score(line: &str) -> i64 {
         let mut stack = VecDeque::new();
-        let mut score = 0;
+        let mut score = 0i64;
         for character in line.chars() {
             match Chunk::from_char(character) {
                 Chunk::Open(ctype) => stack.push_back(ctype),
@@ -83,17 +89,42 @@ impl NavigationSubsystem {
                         }
                     }
                     if score != 0 {
-                        return score;
+                        // return score;
                     }
                 }
             }
         }
-        0
+        if score == 0 {
+            println!("Calculating score for {:?}", stack);
+            loop {
+                if let Some(item) = stack.pop_back() {
+                    score *= 5;
+                    if item == ChunkType::Round {
+                        score += 1;
+                    } else if item == ChunkType::Square {
+                        score += 2;
+                    } else if item == ChunkType::Curly {
+                        score += 3;
+                    } else if item == ChunkType::Angle {
+                        score += 4;
+                    } else {
+                        panic!("Unknown chunk type: {:?}", item);
+                    }
+                } else {
+                    break;
+                }
+            }
+            println!("Score is {}", score)
+        } else {
+            score = 0;
+        }
+        score
     }
 }
 
 fn main() {
     let subsystem = NavigationSubsystem::from_file("data/day10-input");
+    // let subsystem = NavigationSubsystem::from_file("data/day10-sample");
     let score = subsystem.calculate_score();
     println!("Score: {}", score);
 }
