@@ -90,11 +90,17 @@ impl OctopusMap {
 fn main() {
     let mut octopusmap = OctopusMap::from_file("data/day11-input");
     let mut num_flashes = 0;
-    println!("Before any steps: {:?}", octopusmap.energies);
-    for step in 0..100 {
+    println!("Before any steps: {:?} ({})", octopusmap.energies, octopusmap.energies.len());
+    let mut step = 0;
+    loop {
         num_flashes += octopusmap.step();
-        println!("After step {} ({} flashes)", step+1, num_flashes);
-        println!("{:?}", octopusmap.energies);
+        step += 1;
+        // println!("After step {} ({} flashes)", step+1, num_flashes);
+        // println!("{:?}", octopusmap.energies);
+        if octopusmap.energies.iter().filter(|&&val| val == 0).count() == octopusmap.energies.len() {
+            println!("All flash after step {}", step);
+            break;
+        }
     }
     println!("Total flashes: {}", num_flashes);
 }
